@@ -1,7 +1,9 @@
 <template lang="html">
   <div>
-    <input type="text" v-model="info" placeholder="Info" />
-    <p v-if="info">{{info}}</p>
+    <p v-if="email">
+      {{email}}
+      <button class="button is-primary" @click="logoutUser">Log Out</button> 
+    </p>
     <button v-else class="button is-primary" v-on:click="loginUser">Login with Google</button>
   </div>
 </template>
@@ -12,50 +14,39 @@ import axios from "axios";
 export default {
   data() {
     return {
-      info: ""
+      name: "",
+      email: ""
     }
   },
-  beforeCreated() {
-    chrome.storage.local.get({profile: {}}, function(result) {
-      if (!result) return;
+  mounted() {
+    chrome.storage.local.get({ profile: {} }, function(result) {
+      if (!(result && result.profile)) return;
       const profile = result.profile;
-      this.info = profile.name + "(" + profile.email + ")";
-      console.log('info:' + this.info);
-    });
+      this.name = profile.name;
+      this.email = profile.email;
+      console.log('email:' + this.email);
+    }.bind(this));
   },
   methods: {
     loginUser: function() {
-      chrome.identity.getAuthToken({ 'interactive': true }, function(access_token) {
-        var url = 'https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses';
-        axios({
-          method: "GET",
-          url: url,
-          headers: {"Authorization": "Bearer " + access_token}
-        }).then(result => {
-          const people = JSON.parse(result);
-          const profile = {
-            name: people.names[0].displayName,
-            email: people.emailAddresses[0].value
-          }
-          this.info = profile.name + "(" + profile.email + ")";
-          chrome.storage.local.set({profile: profile});
-          console.log('info-1:' + this.info);
-        }, error => {
-            console.log(error);
-        });
-      });
-      return;
       this.authenticatedXhr('GET', 'https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses', function(err, httpStatus, response) {
+        if (err || httpStatus !== 200) {
+          return;
+        }
         const people = JSON.parse(response);
-        chrome.storage.local.set({people: people});
         this.name = people.names[0].displayName;
         this.email = people.emailAddresses[0].value;
         const profile = {
           name: this.name,
           email: this.email
         };
-        chrome.storage.local.set({profile: profile});
-      });
+        chrome.storage.local.set({ profile: profile });
+      }.bind(this));
+    },
+    logoutUser: function() {
+      chrome.storage.local.remove(['profile']);
+      this.name = '';
+      this.email = '';
     },
     authenticatedXhr: function(method, url, callback) {
       let retry = true;
@@ -82,7 +73,6 @@ export default {
                   getTokenAndXhr);
               return;
             }
-
             callback(null, this.status, this.responseText);
           }
           xhr.send();
