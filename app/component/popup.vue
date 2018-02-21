@@ -4,7 +4,7 @@
       <div class="column">
         <div class="notification">
             <div>
-              <!-- input type="text" v-model="info" placeholder="Info" /-->
+              <input type="text" v-model="info" placeholder="Info" />
               <p v-if="info">{{info}}</p>
               <button v-else class="button is-primary" v-on:click="loginUser">Login with Google</button>
             </div>
@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import Login from './login.vue';
+import axios from "axios";
 export default {
   data() {
     return {
@@ -29,7 +29,8 @@ export default {
     chrome.storage.local.get({profile: {}}, function(result) {
       if (!result) return;
       const profile = result.profile;
-      this.info = profile.name + "(" + profile.email + ")";
+      // this.info = profile.name + "(" + profile.email + ")";
+      this.info = profile.email;
       console.log('info:' + this.info);
     }.bind(this));
   },
@@ -42,7 +43,8 @@ export default {
           url: url,
           headers: {"Authorization": "Bearer " + access_token}
         }).then(result => {
-          const people = JSON.parse(result);
+          const people = result.data;
+          console.log(people);
           const profile = {
             name: people.names[0].displayName,
             email: people.emailAddresses[0].value
@@ -53,8 +55,8 @@ export default {
         }, error => {
             console.log(error);
         });
-      });
-    }.bind(this)
+      }.bind(this));
+    }
   }
 }
 </script>
