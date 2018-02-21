@@ -9,6 +9,14 @@
     "16": "images/icon-16.png",
     "128": "images/icon-128.png"
   },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnF13SllJv5nwOcfAZc2Wn2Q0Pu7T4A+on2N1vvoVyt09ciGwKjwYeCzPeLaTPbXXGig9sNuLm051t2VukcBQyETDTqSCZP1pu82FJ5Mvyta8jJZq/cGKQEpwo/9SNoSZuhs7XoGQbfqKWt73EIxZYlrE+Yj+Nx8i/ar33IbA2hyMS1RMY2xXO9Bb6z4f32P/Vsb2Ylg3MOkJi4MwlpPc+PgVr9QgVHe2HRshwuxfrrBUJ94R2Q+n4QGsFekeuN3M/1+WHbzyNrE+e33Hh4UZE4hPx3tHcRbBFHTs5mHl3nxYL/5mMkCDz5LRKDuoKHKtzkDEu4jGrqpLocWhb10CWwIDAQAB",
+  "oauth2": {
+    "client_id": "162819014529-jrvjmnf2qr2j2tle189g2l05vrvvmi0q.apps.googleusercontent.com",
+    "scopes": [
+      "profile",
+      "email"
+    ]
+  },
   "background": {
     "scripts": [
       "scripts/background.js"
@@ -33,10 +41,12 @@
     "debugger",
     "declarativeContent",
     "history",
+    "identity",
     "management",
     "notifications",
     "pageCapture",
     "proxy",
+    "storage",
     "tabCapture",
     "tabs",
     "topSites",

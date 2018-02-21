@@ -1,8 +1,8 @@
 {
-  "name": "vue-chrome-extension-example",
+  "name": "knowledge-manager",
   "private": true,
-  "version": "0.0.0",
-  "description": "chrome extesion with vue",
+  "version": "0.0.1",
+  "description": "knowledge manager browser extesion with vue",
   "scripts": {
     "start": "npm run dev:chrome",
     "build": "npm run build:chrome",
@@ -60,6 +60,7 @@
     "yargs": "5.x.x"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "gulp": "^3.9.1"
   }
 }

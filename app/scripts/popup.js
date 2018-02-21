@@ -3,8 +3,8 @@ import App from '../component/popup.vue';
 
 var app=new Vue({
   el:'#app',
-  data:{
-    name:'Knowledge Manager'
+  data: {
+    name: 'Knowledge Manager'
   },
   render: h =>h(App)
 })
