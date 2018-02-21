@@ -4,8 +4,10 @@
       <div class="column">
         <div class="notification">
             <div>
-              <input type="text" v-model="info" placeholder="Info" />
-              <p v-if="info">{{info}}</p>
+              <p v-if="email">
+                {{ email }}
+                <button class="button is-primary" @click="logoutUser">Log Out</button> 
+              </p>
               <button v-else class="button is-primary" v-on:click="loginUser">Login with Google</button>
             </div>
         </div>
@@ -22,16 +24,17 @@ import axios from "axios";
 export default {
   data() {
     return {
-      info: ""
+      name: "",
+      email: ""
     }
   },
   mounted() {
     chrome.storage.local.get({profile: {}}, function(result) {
-      if (!result) return;
+      if (!(result && result.profile)) return;
       const profile = result.profile;
-      // this.info = profile.name + "(" + profile.email + ")";
-      this.info = profile.email;
-      console.log('info:' + this.info);
+      this.name = profile.name;
+      this.email = profile.email;
+      console.log('info:' + this.email);
     }.bind(this));
   },
   methods: {
@@ -49,13 +52,19 @@ export default {
             name: people.names[0].displayName,
             email: people.emailAddresses[0].value
           }
-          this.info = profile.name + "(" + profile.email + ")";
-          chrome.storage.local.set({profile: profile});
-          console.log('info-1:' + this.info);
+          this.name = profile.name;
+          this.email = profile.email;
+          chrome.storage.local.set({ profile: profile });
+          console.log('info-1:' + this.email);
         }, error => {
             console.log(error);
         });
       }.bind(this));
+    },
+    logoutUser: function() {
+      chrome.storage.local.remove(["profile"]);
+      this.name = "";
+      this.email = "";
     }
   }
 }
