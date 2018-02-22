@@ -7,7 +7,7 @@
         </div>
       </div>
       <div class="column">
-        <p class="notification">Third column</p>
+        <p>Third column</p>
       </div>
     </div>
   </div>
@@ -28,4 +28,7 @@ export default {
 </script>
 
 <style lang="css">
+.container {
+  width: 400px;
+}
 </style>

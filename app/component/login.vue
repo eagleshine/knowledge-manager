@@ -1,16 +1,18 @@
 <template lang="html">
   <div>
-    <p v-if="email">
-      {{email}}
-      <button class="button is-primary" @click="logoutUser">Log Out</button> 
-    </p>
-    <button v-else class="button is-primary" v-on:click="loginUser">Login with Google</button>
+    <div v-if="email">
+      <span>{{email}}</span>
+      <button class="button is-primary is-pulled-right" @click="logoutUser">Log Out</button> 
+    </div>
+    <div v-else>
+      <span>Welcome</span>
+      <button class="button is-primary is-pulled-right" v-on:click="loginUser">Login with Google</button>
+    </div>
   </div>
 </template>
 
 <script>
-import axios from "axios";
-
+// import axios from "axios";
 export default {
   data() {
     return {
@@ -18,7 +20,7 @@ export default {
       email: ""
     }
   },
-  mounted() {
+  created() {
     chrome.storage.local.get({ profile: {} }, function(result) {
       if (!(result && result.profile)) return;
       const profile = result.profile;
@@ -31,16 +33,18 @@ export default {
     loginUser: function() {
       this.authenticatedXhr('GET', 'https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses', function(err, httpStatus, response) {
         if (err || httpStatus !== 200) {
+          console.log("err: " + err + "; httpStatus:" + httpStatus);
           return;
         }
         const people = JSON.parse(response);
-        this.name = people.names[0].displayName;
-        this.email = people.emailAddresses[0].value;
         const profile = {
-          name: this.name,
-          email: this.email
+          name: people.names[0].displayName,
+          email: people.emailAddresses[0].value
         };
+        this.name = profile.name;
+        this.email = profile.email;
         chrome.storage.local.set({ profile: profile });
+        console.log('Set profile: ' + JSON.stringify(profile));
       }.bind(this));
     },
     logoutUser: function() {
@@ -53,8 +57,8 @@ export default {
       let retry = true;
       function getTokenAndXhr() {
         chrome.identity.getAuthToken({ 'interactive': true }, function (access_token) {
-          console.log('access token:' + access_token);
           if (chrome.runtime.lastError) {
+            console.error(chrome.runtime.lastError);
             callback(chrome.runtime.lastError);
             return;
           }
