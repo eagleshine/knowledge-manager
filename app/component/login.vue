@@ -20,8 +20,8 @@ export default {
       email: ""
     }
   },
-  created() {
-    chrome.storage.local.get({ profile: {} }, function(result) {
+  mounted() {
+    chrome.storage.local.get({ profile: '' }, function(result) {
       if (!(result && result.profile)) return;
       const profile = result.profile;
       this.name = profile.name;
@@ -44,7 +44,9 @@ export default {
         this.name = profile.name;
         this.email = profile.email;
         chrome.storage.local.set({ profile: profile });
-        console.log('Set profile: ' + JSON.stringify(profile));
+        console.log('Sent profile: ' + JSON.stringify(profile));
+
+        // chrome.runtime.sendMessage({ login: true, profile: profile });
       }.bind(this));
     },
     logoutUser: function() {
