@@ -8,7 +8,7 @@ var user = {
   name: 'Lorenzai Knoman',
   email: 'lorenzai.knoman@gmail.com'
 };
-var token = 'tett';
+var token = '';
 
 chrome.runtime.onInstalled.addListener(function (details) {
   console.log('previousVersion', details.previousVersion);
@@ -17,11 +17,13 @@ chrome.runtime.onInstalled.addListener(function (details) {
 chrome.browserAction.setBadgeText({text: 'KM'});
 
 function init() {
+  chrome.storage.local.get({ user: user, token: token });
   chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
       if (request.login) {
         user = request.user;
         token = request.token;
+        chrome.storage.local.set({ user: user, token: token });
         return;
       }
       if (request.mounted) {
