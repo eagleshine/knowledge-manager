@@ -6,7 +6,8 @@ var lastURL = {};
 var research = '';
 var user = {
   name: 'Lorenzai Knoman',
-  email: 'lorenzai.knoman@gmail.com'
+  //email: 'lorenzai.knoman@gmail.com'
+  email: ''
 };
 var token = '';
 
@@ -16,19 +17,27 @@ chrome.runtime.onInstalled.addListener(function (details) {
 
 chrome.browserAction.setBadgeText({text: 'KM'});
 
+// Need to remove "default_popup": "pages/popup.html" from manifest.json
+// for the following to work
+// chrome.browserAction.onClicked.addListener(function(tab) { alert('icon clicked')});
+
 function init() {
-  chrome.storage.local.get({ user: user, token: token });
+  chrome.storage.local.get({ user: user, token: ''}, function(result) {
+    user = result.user;
+    token = result.token;
+  });
   chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
       if (request.login) {
         user = request.user;
         token = request.token;
-        chrome.storage.local.set({ user: user, token: token });
+        chrome.storage.local.set({ user: request.user, token: request.token });
         return;
       }
       if (request.mounted) {
         sendResponse({
-          token: token
+          token: token,
+          user: user
         });
         return;
       }

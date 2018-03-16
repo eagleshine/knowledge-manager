@@ -1,15 +1,17 @@
 <template lang="html">
   <div>
-    <div>{{ message }}</div>
+    <div>{{ message | capitalize }}</div>
     <div v-if="login">
       <span>{{ input.username }}</span>
-      <button class="button is-primary is-pulled-right" @click="logoutUser()">Log Out</button> 
+      <button class="button is-primary is-outlined is-pulled-right" @click="logoutUser()">Log Out</button>
     </div>
     <div v-else>
-      <input type="text" v-model="input.username" placeholder="email" />
-      <input type="password" v-model="input.password" placeholder="password" />
-      <button v-on:click="loginUser()">Sign In</button>
-      <button v-on:click="registerUser()">Register</button>
+      <div>
+        <input class="input" type="email" v-model="input.username" placeholder="email" />
+        <input class="input" type="password" v-model="input.password" placeholder="password" />
+      </div>
+      <button class="button is-primary is-outlined" v-on:click="loginUser()">Sign In</button>
+      <button class="button is-danger is-outlined is-pulled-right" v-on:click="registerUser()">Register</button>
     </div>
   </div>
 </template>
@@ -34,6 +36,7 @@ export default {
       this.message = 'Please sign in:';
       if (response.token) {
         const token = response.token;
+        this.login = true;
         // check the expiration of the token
         axios.get('/me', {
           headers: {
@@ -43,14 +46,19 @@ export default {
         }).then(result => {
           this.input.username = result.data.username;
           this.input.password = '';
-          this.login = true;
           this.message = 'Welcome back';
           console.log('username:' + result.data.username);
         }, err => {
           //token expired
+          this.login = false;
         })
       }
     }.bind(this));
+  },
+  filters: {
+    capitalize(v) {
+      return v.charAt(0).toUpperCase() + v.slice(1);
+    }
   },
   methods: {
     loginUser() {
@@ -92,10 +100,11 @@ export default {
       });
     },
     logoutUser() {
-      chrome.runtime.sendMessage({ logout: true, user: {}, token:'' });
+      this.message = 'Please sign in:';
       this.login = false;
       this.input.username = '';
       this.input.password = '';
+      chrome.runtime.sendMessage({ logout: true, user: this.input, token:'' });
     }
   }
 }
