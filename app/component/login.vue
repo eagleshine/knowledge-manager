@@ -92,7 +92,7 @@ export default {
       });
     },
     logoutUser() {
-      chrome.storage.local.remove(['token']);
+      chrome.runtime.sendMessage({ logout: true, user: {}, token:'' });
       this.login = false;
       this.input.username = '';
       this.input.password = '';

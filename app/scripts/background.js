@@ -30,6 +30,12 @@ function init() {
         sendResponse({
           token: token
         });
+        return;
+      }
+      if (request.logout) {
+        user = request.user;
+        token = request.token;
+        chrome.storage.local.remove(['user', 'token']);
       }
     }
   );
