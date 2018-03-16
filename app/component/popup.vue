@@ -29,6 +29,6 @@ export default {
 
 <style lang="css">
 .container {
-  width: 400px;
+  width: 450px;
 }
 </style>

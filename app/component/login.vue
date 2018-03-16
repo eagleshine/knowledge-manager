@@ -1,115 +1,101 @@
 <template lang="html">
   <div>
-    <div v-if="email">
-      <span>{{email}}</span>
-      <button class="button is-primary is-pulled-right" @click="logoutUser">Log Out</button> 
+    <div>{{ message }}</div>
+    <div v-if="login">
+      <span>{{ input.username }}</span>
+      <button class="button is-primary is-pulled-right" @click="logoutUser()">Log Out</button> 
     </div>
     <div v-else>
-      <span>Welcome</span>
-      <button class="button is-primary is-pulled-right" v-on:click="loginUser">Login with Google</button>
+      <input type="text" v-model="input.username" placeholder="email" />
+      <input type="password" v-model="input.password" placeholder="password" />
+      <button v-on:click="loginUser()">Sign In</button>
+      <button v-on:click="registerUser()">Register</button>
     </div>
   </div>
 </template>
 
 <script>
-// import axios from "axios";
+import axios from "axios";
+const REST_API_BASE = 'http://resorttransport.corp.ne1.yahoo.com:3001/knoman/api/v1/users';
+axios.defaults.baseURL = REST_API_BASE;
 export default {
   data() {
     return {
-      name: "",
-      email: ""
+      login: false,
+      message: "Welcome",
+      input: {
+        username: "",
+        password:""
+      }
     }
   },
   mounted() {
-    chrome.storage.local.get({ profile: '' }, function(result) {
-      if (!(result && result.profile)) return;
-      const profile = result.profile;
-      this.name = profile.name;
-      this.email = profile.email;
-      console.log('email:' + this.email);
+    chrome.runtime.sendMessage({ mounted: true }, function(response) {
+      this.message = 'Please sign in:';
+      if (response.token) {
+        const token = response.token;
+        // check the expiration of the token
+        axios.get('/me', {
+          headers: {
+            'content-type': 'application/json',
+            'authorization': 'JWT ' + token
+          }
+        }).then(result => {
+          this.input.username = result.data.username;
+          this.input.password = '';
+          this.login = true;
+          this.message = 'Welcome back';
+          console.log('username:' + result.data.username);
+        }, err => {
+          //token expired
+        })
+      }
     }.bind(this));
   },
   methods: {
-    loginUser: function() {
-      this.authenticatedXhr('GET', 'https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses', function(err, httpStatus, response) {
-        if (err || httpStatus !== 200) {
-          console.log("err: " + err + "; httpStatus:" + httpStatus);
-          return;
+    loginUser() {
+      axios.post('/login', this.input, {
+        headers: {
+          'content-type': 'application/json'
         }
-        const people = JSON.parse(response);
-        const profile = {
-          name: people.names[0].displayName,
-          email: people.emailAddresses[0].value
-        };
-        this.name = profile.name;
-        this.email = profile.email;
-        chrome.storage.local.set({ profile: profile });
-        console.log('Sent profile: ' + JSON.stringify(profile));
-
-        // chrome.runtime.sendMessage({ login: true, profile: profile });
-      }.bind(this));
-    },
-    logoutUser: function() {
-      this.revokeToken();
-      chrome.storage.local.remove(['profile']);
-      this.name = '';
-      this.email = '';
-    },
-    authenticatedXhr: function(method, url, callback) {
-      let retry = true;
-      function getTokenAndXhr() {
-        chrome.identity.getAuthToken({ 'interactive': true }, function (access_token) {
-          if (chrome.runtime.lastError) {
-            console.error(chrome.runtime.lastError);
-            callback(chrome.runtime.lastError);
-            return;
-          }
-
-          var xhr = new XMLHttpRequest();
-          xhr.open(method, url);
-          xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
-
-          xhr.onload = function () {
-            if (this.status === 401 && retry) {
-              // This status may indicate that the cached
-              // access token was invalid. Retry once with
-              // a fresh token.
-              retry = false;
-              chrome.identity.removeCachedAuthToken(
-                  { 'token': access_token },
-                  getTokenAndXhr);
-              return;
-            }
-            callback(null, this.status, this.responseText);
-          }
-          xhr.send();
-        });
-      }
-      getTokenAndXhr();
-    },
-    revokeToken: function() {
-      chrome.identity.getAuthToken({ 'interactive': false }, function(current_token) {
-        if (!chrome.runtime.lastError) {
-          // @corecode_begin removeAndRevokeAuthToken
-          // @corecode_begin removeCachedAuthToken
-          // Remove the local cached token
-          chrome.identity.removeCachedAuthToken({ token: current_token },
-            function() {});
-          // @corecode_end removeCachedAuthToken
-
-          // Make a request to revoke token in the server
-          var xhr = new XMLHttpRequest();
-          xhr.open('GET', 'https://accounts.google.com/o/oauth2/revoke?token=' +
-                  current_token);
-          xhr.send();
-          // @corecode_end removeAndRevokeAuthToken
-
-          // Update the user interface accordingly
-          // $('#revoke').get(0).disabled = true; 
-          console.log('Token revoked and removed from cache. ' +
-            'Check chrome://identity-internals to confirm.');
+      }).then(result => {
+        chrome.runtime.sendMessage({ login: true, user: this.input, token: result.data.token });
+        this.login = true;
+        this.message = 'Welcome back!';
+      }, err => {
+        this.login = false;
+        console.log(err.response);
+        console.log(err.config);
+        if (err.response && err.response.data && err.response.data.message) {
+          this.message = err.response.data.message;
+        } else if (err.request) {
+          this.message = 'No response from server. Try it later';
+        } else {
+          this.message = 'Login failed. Try it later.';
         }
       });
+    },
+    registerUser() {
+      if (this.input.username === '') {
+        this.message = 'Please specify a valid email address';
+        return;
+      }
+      axios.post('/register', this.input, {
+        headers: {
+          'content-type': 'application/json'
+        }
+      }).then(result => {
+        this.loginUser();
+      }, err => {
+        this.message = err.username;
+        console.log(err);
+      });
+    },
+    logoutUser() {
+      chrome.storage.local.remove(['token']);
+      this.login = false;
+      this.input.username = '';
+      this.input.password = '';
     }
   }
 }

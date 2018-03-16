@@ -48,6 +48,7 @@
     "gulp-util": "3.x.x",
     "gulp-vueify": "0.0.3",
     "gulp-zip": "3.x.x",
+    "jquery": "^3.2.1",
     "node-sass": "^4.7.2",
     "require-dir": "0.x.x",
     "vinyl-named": "1.x.x",
